@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "express": "^4.18.1",
+    "nodemon": "^2.0.19"
+  },
+  "name": "signature-electronique",
+  "version": "1.0.0",
+  "description": "projet 7 signature electronique",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AyoubRebhi/Signature-lectronique.git"
+  },
+  "author": "Ayoub_Rebhi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AyoubRebhi/Signature-lectronique/issues"
+  },
+  "homepage": "https://github.com/AyoubRebhi/Signature-lectronique#readme"
+}
