@@ -2,6 +2,7 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+
 //DB connection
 mongoose.connect("mongodb://localhost:27017");
 mongoose.connection.on("connected", () => {
@@ -23,7 +24,7 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 //server listening
 const port = 8000;
-
+//tests
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`);
 });
@@ -34,11 +35,14 @@ app.get('/',(req,res)=>{
 app.get('/login',(req,res)=>{
 	res.render('login.ejs',)
 })
+app.post('/login',(req,res)=>{
+    
+})
 app.get('/register',(req,res)=>{
 	res.render('register.ejs',)
 })
 app.post('/register',(req,res)=>{
-    
+    req.body.email
 })
 
 app.set('view-engine','ejs')
