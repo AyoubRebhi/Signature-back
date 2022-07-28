@@ -135,6 +135,7 @@ const forgotPassword = async (req, res) => {
 	}
 };
 
+
 module.exports.forgotPassword = forgotPassword;
 module.exports.emailVerification = emailVerification;
 module.exports.register = register;
