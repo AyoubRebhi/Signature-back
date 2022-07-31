@@ -38,72 +38,6 @@ const port = 8000;
 
 app.use(express.static('uploads'));
 
-app.post('/upload-avatar', async (req, res) => {
-    try {
-        if(!req.files) {
-            res.send({
-                status: false,
-                message: 'No file uploaded'
-            });
-        } else {
-            //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
-            let avatar = req.files.avatar;
-            
-            //Use the mv() method to place the file in upload directory (i.e. "uploads")
-            avatar.mv('./uploads/' + avatar.name);
-
-            //send response
-            res.send({
-                status: true,
-                message: 'File is uploaded',
-                data: {
-                    name: avatar.name,
-                    mimetype: avatar.mimetype,
-                    size: avatar.size
-                }
-            });
-        }
-    } catch (err) {
-        res.status(500).send(err);
-    }
-});
-
-app.post('/upload-photos', async (req, res) => {
-    try {
-        if(!req.files) {
-            res.send({
-                status: false,
-                message: 'No file uploaded'
-            });
-        } else {
-            let data = []; 
-    
-            //loop all files
-            _.forEach(_.keysIn(req.files.photos), (key) => {
-                let photo = req.files.photos[key];
-                
-                //move photo to uploads directory
-                photo.mv('./uploads/' + photo.name);
-
-                //push file details
-                data.push({
-                    name: photo.name,
-                    mimetype: photo.mimetype,
-                    size: photo.size
-                });
-            });
-    
-            //return response
-            res.send({
-                status: true,
-                message: 'Files are uploaded',
-                data: data
-            });
-        }
-    } catch (err) {
-        res.status(500).send(err);
-    }
-});
 
 //tests
 app.listen(port, () => {
@@ -125,12 +59,19 @@ app.get('/register',(req,res)=>{
 app.post('/register',(req,res)=>{
     req.body.email
 })
+//methode youtube
 app.post('/upload', function(req, res) {
-	console.log(req.files.foo); // the uploaded file object
+	if(res.files) {
+		console.log(req.files);
+		var file= req.files.file;
+		var filename= file.name;
+		console.log(filename);
+	}
 })
 
-app.get('/',(req,res)=>{
-	res.sendFile(__dirname +'/views/index.ejs')
+app.get('/upload',(req,res)=>{
+	res.render('upload.ejs',)
+	res.sendFile(__dirname +'/views/upload.ejs')
 })
 
 app.set('view-engine','ejs')
