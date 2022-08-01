@@ -52,6 +52,10 @@ const updateDoc = async (req, res) => {
 	}
 };
 
+const uploadDoc = async(req,res)=> {
+	
+}
+
 module.exports.createDoc = createDoc;
 module.exports.getDocs = getDocs;
 module.exports.getDoc = getDoc;
