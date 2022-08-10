@@ -10,4 +10,4 @@ const DocSchema = new mongoose.Schema({
 {timestamps: true}
 );
 
-module.exports = mongoose.model("Student", DocSchema);
+module.exports = mongoose.model("Doc", DocSchema);

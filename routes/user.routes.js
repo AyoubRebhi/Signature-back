@@ -23,10 +23,10 @@ router.param("user", async (req, res, next, id) => {
 	}
 });
 
-router.post("/", createUser);
-router.get("/", getUsers);
-router.get("/:user", getUser);
-router.put("/:user", updateUser);
-router.delete("/:user", deleteUser);
+router.post("/create", createUser);
+router.get("/getall", getUsers);
+router.get("/get", getUser);
+router.put("/update", updateUser);
+router.delete("/delete", deleteUser);
 
 module.exports = router;
