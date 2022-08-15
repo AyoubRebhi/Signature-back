@@ -55,22 +55,6 @@ app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`);
 });
 
-//login User
-app.get('/login',(req,res)=>{
-	res.render('login.ejs',);
-});
-app.post('/login',(rep,res)=>{
-
-})
-//forgot password
-app.get('/forgot',(req,res)=>{
-	res.render('forgot.ejs',);
-});
-//register of user
-
-//upload files
-
-
 
 
 app.set('view-engine','ejs')
