@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema(
 			index: true,
 			maxlength: 256,
 		},
-		password: { type: String, required: true, maxlength: 4096 },
+		password: { type: String, required: true, maxlength: 4096, minlength:8 },
 		lastLogin: { type: Date, default: Date.now },
 		isAdmin: { type: Boolean, default: false },
 	},

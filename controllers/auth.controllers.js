@@ -1,4 +1,4 @@
-const userModels = require("../models/user.models");
+const User = require("../models/user.models");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const isEmail = require("validator/lib/isEmail");
@@ -6,20 +6,26 @@ const { REGISTER_ASYNC_USER } = require("../constants");
 const crypto = require("crypto");
 const transporter = require("../utils/nodemailer");
 const Redis = require("ioredis");
+const { Console } = require("console");
 
-const register = async (req, res) => {
-	try {
-		const existEmail = await userModels.findOne({ email: req.body.email });
 
-		if (existEmail) {
+const signup=(req,res)=>{
+	console.log(req.body);
+	const{email,username,password}=req.body;
+    User.findOne({email}).exec((err,user)=>{
+		if(user){
 			return res.status(422).json("L'e-mail existe déjà");
 		}
-		emailQueue.add(REGISTER_ASYNC_USER, req.body);
-		return res.status(202).json("Compte créé avec succès");
-	} catch (err) {
-		return res.status(500).json(err);
-	}
-};
+		let newUser=new User({email,username,password});
+		newUser.save((err,sucess)=>{
+			if(err){
+				console.log("there s an error in signup:",err);
+			}
+			res.status(202).json("Compte créé avec succès");
+		})
+
+	})
+}
 
 const login = async (req, res) => {
 	let existUser = null;
@@ -138,6 +144,6 @@ const forgotPassword = async (req, res) => {
 
 module.exports.forgotPassword = forgotPassword;
 module.exports.emailVerification = emailVerification;
-module.exports.register = register;
+module.exports.signup = signup;
 module.exports.login = login;
 module.exports.resetPassword = resetPassword;

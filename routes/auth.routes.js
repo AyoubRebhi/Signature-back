@@ -1,14 +1,16 @@
 const {
-	register,
 	login,
 	emailVerification,
 	forgotPassword,
 	resetPassword,
+	signup
 } = require("../controllers/auth.controllers");
 
 const router = require("express").Router();
 
-router.post("/register", register);
+
+router.post("/signup",signup);
+
 router.post("/login", login);
 router.get("/verify", emailVerification);
 router.post("/forgot", forgotPassword);

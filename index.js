@@ -6,8 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const _ = require('lodash');
-const User=require('./models/user.models');
-const Doc=require('./models/doc.models');
+require('dotenv').config();//to use env variables
 const helmet = require("helmet");
 const compression = require("compression");
 
