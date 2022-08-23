@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-
+const crypto=require('crypto');
+//user schema
 const UserSchema = new mongoose.Schema(
 	{
 		email: {
@@ -16,9 +17,10 @@ const UserSchema = new mongoose.Schema(
 			index: true,
 			maxlength: 256,
 		},
-		password: { type: String, required: true, maxlength: 4096, minlength:8 },
+		password: { type: String, required: true, maxlength: 4096,},
 		lastLogin: { type: Date, default: Date.now },
 		isAdmin: { type: Boolean, default: false },
+		verified: Boolean
 	},
 	{ timestamps: true }
 );
