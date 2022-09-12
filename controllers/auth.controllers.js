@@ -3,7 +3,7 @@ const User = require("../models/user.models");
 const UserVerification = require("../models/userVerification");
 const PasswordReset= require("../models/passwordReset");
 //email handler
-const nodemailer=require("nodemailer");
+const nodemailer=require("../node_modules/nodemailer");
 //unique String
 const {v4: uuidv4 } = require('uuid');
 //to use env variables
@@ -11,6 +11,7 @@ require('dotenv').config();
 //path
 const path =require("path");
 //nodemailer stuff 
+// const transporter = nodemailer.createTransport(config.mailerOptions);
 
 // const transporter = require("../utils/nodemailer");
 const bcrypt = require("bcryptjs");
@@ -21,32 +22,58 @@ const crypto = require("crypto");
 const { Console, error } = require("console");
 
 //testig success
-let transporter=nodemailer.createTransport({
-	service:"gmail",
-	auth:{
-		user:process.env.AUTH_EMAIL,
-		pass:process.env.AUTH_PASS,
-	},
-	secure:false,
-	host:"stmp.example.com"	
-})
-// transporter.verify((error,success)=>{
-// 	if(error){
-// 		console.log(error);
-// 	}else {
-// 		console.log("Ready for messages");
-// 		console.log(success);
-// 	}
+// Generate SMTP service account from ethereal.email
+// nodemailer.createTestAccount((err, account) => {
+//     if (err) {
+//         console.error('Failed to create a testing account');
+//         console.error(err);
+//         return process.exit(1);
+//     }
+
+//     console.log('Credentials obtained, sending message...');
+
+//     // Create a SMTP transporter object
+//     let transporter = nodemailer.createTransport(
+//         {
+//             host: account.smtp.host,
+//             port: account.smtp.port,
+//             secure: "gmail",
+//             auth: {
+// 						user:process.env.AUTH_EMAIL,
+// 				 		pass:process.env.AUTH_PASS,
+// 				 	},
+//             logger: true,
+//             transactionLog: false, // include SMTP traffic in the logs
+//             allowInternalNetworkInterfaces: false
+//         },
+		
+        
+//     );
 // })
+
+let transporter=nodemailer.createTransport({
+	service:"Gmail",
+	host:"localhost",
+	port: 25,
+	tls: {
+		rejectUnauthorized: false
+	},	
+})
+transporter.verify((error,success)=>{
+ 	if(error){
+ 		console.log(error);
+ 	}else {
+ 		console.log("Ready for messages");
+ 		console.log(success);
+ 	}
+})
 
 //1
 //signup user
 const signup=(req,res)=>{
 	console.log(req.body);
 	let{email,username,password}=req.body;
-	email=email.trim();
-	username=username.trim();
-	password=password.trim();
+	
 
 	if(email==""||username==""||password==""){
 		res.json({
@@ -74,15 +101,13 @@ const signup=(req,res)=>{
 						const newUser= new User({
 							email,
 							username,
-							password: hashedPassword
+							password: hashedPassword,
+							verified:false
 						});
 						newUser
 						    .save().then(result=>{
-								res.json({
-									status:"SUCCESS",
-									message:"Signup successfully",
-									data: result
-								})
+								//handle account verification
+								sendVerificationEmail(result,res);
 							})
 							.catch(err=>{
 								console.log(err);
@@ -109,6 +134,76 @@ const signup=(req,res)=>{
 		})
 	}
 }
+
+//send verification email
+const  sendVerificationEmail=({_id,email}, res)=>{
+	//url to be used in the email
+	const currentUrl="http://localhost:5000/";
+
+	const uniqueString = uuidv4 + _id;
+
+	//mail options setup
+	const mailOptions={
+		from: process.env.AUTH_EMAIL,
+		to: email,
+		subject: "Verify your Email",
+		html:`<p>Verify your Email adress to complete you signup and login into your account.</p>
+			  <p>this link <b>expire in 6 hours</b> </p>
+			  `
+
+	};
+	console.log(mailOptions);
+	//hash the uniqueString
+	const saltRounds=10;
+	bcrypt
+	    .hash(uniqueString,saltRounds)
+		.then((hashedUniqueString)=>{
+			//set values in userVerification colection
+			const newVerification= new UserVerification({
+				userId: _id,
+				uniqueString: hashedUniqueString,
+				createdAt: Date.now(),
+				expiresAt: Date.now() + 21600000,
+			});
+			newVerification
+			    .save()
+			    .then(()=>{
+					transporter
+					    .sendMail(mailOptions)
+						.then(()=>{
+							//email sent and verification record saved
+							res.json({
+								status:"PENDING",
+								message:"Verification Email sent!"
+							})
+						})
+						.catch((error=>{
+							console.log(error);
+							res.json({
+								status:"FAILED",
+								message:"Verification email failed!"
+							})
+						}))
+				})
+				.catch((error)=>{
+					console.log(error);
+					res.json({
+						status:"FAILED",
+						message:"Could not save verification email data!"
+					})
+				})
+		})
+		.catch(()=>{
+			res.json({
+				status:"FAILED",
+				message:"An error occured while hashing email data!"
+			})
+		})
+
+};
+//verify email
+
+
 //2
 //Reset password
 const resetPassword = async(req,res)=>{
@@ -119,15 +214,10 @@ const resetPassword = async(req,res)=>{
 	   .then((data)=>{
 		if(data.length){
 			//check if user is verified 
-			if(!data[0].verified){
-				res.json({
-					status:"FAILED",
-					message:"Email has not been verified "
-				});
-			}else{
+			
 				//proceed with email tor reset password 
 				sendResetEmail(data[0], redirectUrl, res);
-			}
+			
 		}else{
 			res.json({
 				status:"FAILED",
@@ -158,7 +248,7 @@ const sendResetEmail=({_id, email}, redirectUrl, res )=>{
 				subject:" Reset Password ",
 				html:`<p>We heard that you lost your password.</p>
 				      <p>Don't worry use the link below to reset it.</p>
-				      <p>this link <b>expire in 60 minutes </p>
+				      <p>this link <b>expire in 60 minutes</b> </p>
 					  <p>Press <a href=${redirectUrl+"/"+ _id +"/" +resetString}>here </a>to proceed </p>`
 			};
 			//hash the reset string
@@ -222,9 +312,6 @@ const sendResetEmail=({_id, email}, redirectUrl, res )=>{
 //login
 const login = async (req, res) => {
 	let{email,password}=req.body;
-	email = email.trim();
-	password = password.trim();
-	
 	if(email==""||password==""){
 		res.json({
 			status:"FAILED",
@@ -246,6 +333,7 @@ const login = async (req, res) => {
 								    message:"Login successfully !",
 								    data: data
 							    })
+								//////Edit AUTH gard
 							}else{
 								res.json({
 									status:"FAILED",
@@ -278,26 +366,42 @@ const login = async (req, res) => {
 //4
 //User verification
 const emailVerification = async (req, res) => {
-	if (!req.query.token) {
-		return res.status(400).json("jeton invalide");
-	}
-	try {
-		const verifiedEmail = jwt.verify(
-			req.query.token,
-			process.env.EMAIL_TOKEN_KEY
-		);
-		const user = await userModels.findByIdAndUpdate(
-			verifiedEmail._id,
-			{ isEmailVerified: true },
-			{ new: true }
-		);
-		return res.status(200).json(user);
-	} catch (err) {
-		return res.status(400).json("jeton invalide");
-	}
-};
+	let { userId,uniqueString}=req.params;
+	UserVerification
+	    .find({userId})
+	    .then((result)=>{
+			if(result.length > 0){
+				//user verification record exists 
+				const {expiresAt}=result[0];
 
+				//checking for expired link
+				if(expiresAt <Date.now()){
+					//record has been expired so we ve to delete it 
+					UserVerification
+					    .deleteOne({userId})
+						.then()
+						.catch((error)=>{
+							console.log(error);
+							let message="An error occured while deleting expired user!";
+			                res.redirect(`/user/verified/error=true&message=${message}`);
+						})
+				}
+			}else{
+				//user verification record does not exist
+				let message="Account record does not exist or has been verified already!";
+			    res.redirect(`/user/verified/error=true&message=${message}`);
+			}
+		})
+		.catch((error)=>{
+			console.log(error);
+		    let message="An error occured while checking for existing user verification!";
+			res.redirect(`/user/verified/error=true&message=${message}`);
+		})
+}
+//verified User
+const verified = async (req,res)=>{
 
+}
 
 
 const forgotPassword = async (req, res) => {

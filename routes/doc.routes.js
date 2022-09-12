@@ -4,8 +4,10 @@ const {
 	getDocs,
 	updateDoc,
 	deleteDoc,
+	DocU,
 } = require('../controllers/doc.controllers');
-const docModel = require('../models/doc.models');
+const docModels = require('../models/doc.models');
+const Doc = require('../models/doc.models');
 const router = require('express').Router();
 
 router.param("doc", async (req, res, next, id) => {
@@ -29,25 +31,19 @@ router.get('/upload',(req,res)=>{
 })
 
 router.post('/upload', function(req, res) {
+	//console.log("user");
 
-	if(req.files) {
-		console.log(req.files);
-		var file= req.files.file;
-		var filename= file.name;
-		console.log(filename);
-		doc= new Doc(data);
-	    doc.save();
-	    file.mv('./uploads/'+ filename,function(err){
-			if (err) {
-				res.send(err)
-			}
-			else{
-				res.send("file uploaded successfully ")
-			}
-		})     
+	if(req) {
+        let {url,name} = req.body;
+		doc = new Doc();
+		doc.name=name;
+		doc.url=url;
+	    doc.save();     
 	}
 
 })
+
+router.post("/docupload",DocU);
 router.post("/create", createDoc);
 router.get("/getall", getDocs);
 router.get("/get", getDoc);
